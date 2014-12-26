@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.utils.html import escape
 
-from polls.models import Question
+#from polls.models import Question
 
 from .factories import QuestionFactory
 
@@ -30,7 +30,10 @@ class QuestionMethodTests(TestCase):
 
 def create_question(question_text, days):
     time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)
+    #return Question.objects.create(question_text=question_text, pub_date=time)
+    question = QuestionFactory(question_text=question_text, pub_date=time)
+    question.save()
+    return question
 
 
 class QuestionViewTests(TestCase):
@@ -41,9 +44,9 @@ class QuestionViewTests(TestCase):
         self.assertQuerysetEqual(response.context['latest_question_list'], [])
 
     def test_index_view_with_a_past_question(self):
-        #create_question(question_text='Past question.', days=-30)
-        time = timezone.now() + datetime.timedelta(days=-30)
-        QuestionFactory(question_text='Past question.', pub_date=time)        
+        create_question(question_text='Past question.', days=-30)
+        #time = timezone.now() + datetime.timedelta(days=-30)
+        #QuestionFactory(question_text='Past question.', pub_date=time)
         response = self.client.get(reverse('polls:index'))
         self.assertQuerysetEqual(
             response.context['latest_question_list'],
@@ -51,9 +54,9 @@ class QuestionViewTests(TestCase):
         )
 
     def test_index_view_with_a_future_question(self):
-        #create_question(question_text='Future question.', days=30)
-        time = timezone.now() + datetime.timedelta(days=30)
-        QuestionFactory(question_text='Future question.', pub_date=time)         
+        create_question(question_text='Future question.', days=30)
+        #time = timezone.now() + datetime.timedelta(days=30)
+        #QuestionFactory(question_text='Future question.', pub_date=time)         
         response = self.client.get(reverse('polls:index'))
         self.assertContains(response, escape("No polls are available."), status_code=200)
         self.assertQuerysetEqual(response.context['latest_question_list'], [])
@@ -75,7 +78,7 @@ class QuestionViewTests(TestCase):
             response.context['latest_question_list'],
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
         )
-"""
+
 class QuestionIndexDetailTests(TestCase):
     def test_detail_view_with_a_future_question(self):
         future_question = create_question(question_text='Future question.', days=5)
@@ -121,4 +124,3 @@ class QuestionVoteTests(TestCase):
         #check votes number
         added_choice1 = question.choice_set.get(pk=choice1.id)
         self.assertEqual(added_choice1.votes, 3)
-"""
