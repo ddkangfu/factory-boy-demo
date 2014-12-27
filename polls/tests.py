@@ -8,26 +8,31 @@ from django.utils.html import escape
 from .factories import QuestionFactory
 
 
+def create_question(question_text="Question", hours=None, days=None):
+    params = {}
+
+    if hours:
+        params["hours"] = hours
+
+    if days:
+        params["days"] = days
+
+    time = timezone.now() + datetime.timedelta(**params)
+    return QuestionFactory(question_text=question_text, pub_date=time)
+
+
 class QuestionMethodTests(TestCase):
     def test_was_published_recently_with_future_question(self):
-        time = timezone.now() + datetime.timedelta(days=30)
-        future_question = QuestionFactory(pub_date=time)
+        future_question = create_question(days=30)
         self.assertEqual(future_question.was_published_recently(), False)
 
     def test_was_published_recently_with_old_question(self):
-        time = timezone.now() - datetime.timedelta(days=30)
-        old_question = QuestionFactory(pub_date=time)
+        old_question = create_question(days=-30)
         self.assertEqual(old_question.was_published_recently(), False)
 
     def test_was_published_recently_with_recent_question(self):
-        time = timezone.now() - datetime.timedelta(hours=1)
-        recent_question = QuestionFactory(pub_date=time)
+        recent_question = create_question(hours=-1)
         self.assertEqual(recent_question.was_published_recently(), True)
-
-
-def create_question(question_text, days):
-    time = timezone.now() + datetime.timedelta(days=days)
-    return QuestionFactory(question_text=question_text, pub_date=time)
 
 
 class QuestionViewTests(TestCase):
